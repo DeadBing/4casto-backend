@@ -1,0 +1,55 @@
+# Build artifacts
+bin/
+obj/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+out/
+
+# User-specific files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs and diagnostics
+*.log
+*.trx
+TestResults/
+
+# NuGet
+*.nupkg
+*.snupkg
+*.nuspec
+packages/
+!**/packages/build/
+
+# .NET caches
+*.cache
+*.pdb
+*.mdb
+
+# IDE / Editor
+.vs/
+.vscode/
+.idea/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local environment files
+.env
+.env.*
+
+# Coverage
+coverage/
+coverage-*/
+*.coverage
+*.coveragexml
+
+# Misc
+*.tmp
+*.temp
