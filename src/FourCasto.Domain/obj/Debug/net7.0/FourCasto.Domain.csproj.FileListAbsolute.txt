@@ -1,0 +1,15 @@
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Domain\obj\Debug\net7.0\FourCasto.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Domain\obj\Debug\net7.0\FourCasto.Domain.AssemblyInfoInputs.cache
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Domain\obj\Debug\net7.0\FourCasto.Domain.AssemblyInfo.cs
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Domain\obj\Debug\net7.0\FourCasto.Domain.csproj.CoreCompileInputs.cache
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Domain\bin\Debug\net7.0\FourCasto.Domain.deps.json
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Domain\bin\Debug\net7.0\FourCasto.Domain.dll
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Domain\bin\Debug\net7.0\FourCasto.Domain.pdb
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Domain\bin\Debug\net7.0\FourCasto.Contracts.dll
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Domain\bin\Debug\net7.0\FourCasto.Contracts.pdb
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Domain\obj\Debug\net7.0\FourCasto.Domain.csproj.AssemblyReference.cache
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Domain\obj\Debug\net7.0\FourCasto.Domain.csproj.CopyComplete
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Domain\obj\Debug\net7.0\FourCasto.Domain.dll
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Domain\obj\Debug\net7.0\refint\FourCasto.Domain.dll
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Domain\obj\Debug\net7.0\FourCasto.Domain.pdb
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Domain\obj\Debug\net7.0\ref\FourCasto.Domain.dll

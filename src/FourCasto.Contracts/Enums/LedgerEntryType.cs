@@ -1,0 +1,18 @@
+namespace FourCasto.Contracts.Enums;
+
+public enum LedgerEntryType
+{
+    DEPOSIT,
+    WITHDRAWAL,
+    TRANSFER_IN,
+    TRANSFER_OUT,
+    BET_HOLD,
+    BET_HOLD_RELEASE,
+    SETTLEMENT_WIN,
+    SETTLEMENT_LOSS,
+    CANCELLATION_REFUND,
+    CANCELLATION_PENALTY,
+    BONUS_CREDIT,
+    CORRECTION,
+    ADMIN_ADJUSTMENT
+}

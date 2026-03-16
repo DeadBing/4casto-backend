@@ -1,0 +1,11 @@
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Contracts\bin\Debug\net7.0\FourCasto.Contracts.deps.json
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Contracts\bin\Debug\net7.0\FourCasto.Contracts.dll
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Contracts\bin\Debug\net7.0\FourCasto.Contracts.pdb
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Contracts\obj\Debug\net7.0\FourCasto.Contracts.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Contracts\obj\Debug\net7.0\FourCasto.Contracts.AssemblyInfoInputs.cache
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Contracts\obj\Debug\net7.0\FourCasto.Contracts.AssemblyInfo.cs
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Contracts\obj\Debug\net7.0\FourCasto.Contracts.csproj.CoreCompileInputs.cache
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Contracts\obj\Debug\net7.0\FourCasto.Contracts.dll
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Contracts\obj\Debug\net7.0\refint\FourCasto.Contracts.dll
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Contracts\obj\Debug\net7.0\FourCasto.Contracts.pdb
+C:\Users\egort\Desktop\4casto\4casto-backend\src\FourCasto.Contracts\obj\Debug\net7.0\ref\FourCasto.Contracts.dll

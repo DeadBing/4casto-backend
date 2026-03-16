@@ -1,0 +1,12 @@
+namespace FourCasto.Contracts.Enums;
+
+public enum NotificationEventType
+{
+    BET_OPENED,
+    BET_CANCELLED,
+    CANCELLATION_BLOCKED,
+    SETTLEMENT_COMPLETED,
+    CORRECTION_APPLIED,
+    PAYMENT_STATUS_CHANGED,
+    WITHDRAWAL_STATUS_CHANGED
+}
