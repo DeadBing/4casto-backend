@@ -1,10 +1,10 @@
 # Build artifacts
-bin/
-obj/
-[Bb]uild/
-[Dd]ebug/
-[Rr]elease/
-out/
+**/[Bb]in/
+**/[Oo]bj/
+**/[Bb]uild/
+**/[Dd]ebug/
+**/[Rr]elease/
+**/out/
 
 # User-specific files
 *.user
