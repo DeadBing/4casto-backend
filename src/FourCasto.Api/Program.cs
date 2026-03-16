@@ -54,6 +54,7 @@ builder.Services.AddScoped<IBetCancellationService, BetCancellationService>();
 builder.Services.AddScoped<ISettlementService, SettlementService>();
 builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<ICountryStatusEvaluator, CountryStatusEvaluator>();
+builder.Services.AddScoped<SignalProgressRuleEngine>();
 
 // Controllers + JSON
 builder.Services.AddControllers()

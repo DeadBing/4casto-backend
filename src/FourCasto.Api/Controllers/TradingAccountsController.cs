@@ -1,11 +1,15 @@
 namespace FourCasto.Api.Controllers;
 
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using FourCasto.Api.Extensions;
 using FourCasto.Contracts.Enums;
 using FourCasto.Domain.Accounts;
 using FourCasto.Infrastructure.Persistence;
 
+[Authorize]
 [ApiController]
 [Route("api/trading-accounts")]
 public class TradingAccountsController : ControllerBase
@@ -18,10 +22,11 @@ public class TradingAccountsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAccounts(
-        [FromQuery] Guid fourCastoWlId,
-        [FromQuery] Guid userId)
+    public async Task<IActionResult> GetAccounts()
     {
+        var userId = User.GetUserId();
+        var fourCastoWlId = User.GetFourCastoWlId();
+
         var accounts = await _db.TradingAccounts
             .Include(a => a.Balance)
             .Where(a => a.FourCastoWlId == fourCastoWlId && a.UserId == userId)
@@ -41,18 +46,19 @@ public class TradingAccountsController : ControllerBase
     }
 
     public record CreateAccountDto(
-        Guid FourCastoWlId,
-        Guid UserId,
         AccountType AccountType,
         decimal InitialBalance = 0);
 
     [HttpPost]
     public async Task<IActionResult> CreateAccount([FromBody] CreateAccountDto dto)
     {
+        var userId = User.GetUserId();
+        var fourCastoWlId = User.GetFourCastoWlId();
+
         var account = new TradingAccount
         {
-            FourCastoWlId = dto.FourCastoWlId,
-            UserId = dto.UserId,
+            FourCastoWlId = fourCastoWlId,
+            UserId = userId,
             AccountType = dto.AccountType,
             AccountNumber = $"{dto.AccountType.ToString()[0]}{DateTime.UtcNow:yyyyMMddHHmmss}{Random.Shared.Next(1000, 9999)}"
         };

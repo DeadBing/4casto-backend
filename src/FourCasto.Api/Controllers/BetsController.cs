@@ -1,12 +1,15 @@
 namespace FourCasto.Api.Controllers;
 
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using FourCasto.Api.Extensions;
 using FourCasto.Application.Interfaces;
 using FourCasto.Contracts.Enums;
 using FourCasto.Infrastructure.Persistence;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class BetsController : ControllerBase
@@ -26,8 +29,6 @@ public class BetsController : ControllerBase
     }
 
     public record PlaceBetDto(
-        Guid FourCastoWlId,
-        Guid UserId,
         Guid TradingAccountId,
         Guid MarketId,
         BetDirection Direction,
@@ -37,8 +38,11 @@ public class BetsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> PlaceBet([FromBody] PlaceBetDto dto)
     {
+        var userId = User.GetUserId();
+        var wlId = User.GetFourCastoWlId();
+
         var result = await _placementService.PlaceBetAsync(new PlaceBetRequest(
-            dto.FourCastoWlId, dto.UserId, dto.TradingAccountId,
+            wlId, userId, dto.TradingAccountId,
             dto.MarketId, dto.Direction, dto.StakeAmount, dto.IdempotencyKey));
 
         return Ok(result);
@@ -46,10 +50,11 @@ public class BetsController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> GetBets(
-        [FromQuery] Guid fourCastoWlId,
-        [FromQuery] Guid userId,
         [FromQuery] BetStatus? status = null)
     {
+        var userId = User.GetUserId();
+        var fourCastoWlId = User.GetFourCastoWlId();
+
         var query = _db.Bets
             .Where(b => b.FourCastoWlId == fourCastoWlId && b.UserId == userId);
 
@@ -86,12 +91,10 @@ public class BetsController : ControllerBase
     [HttpPost("{id:guid}/cancel")]
     public async Task<IActionResult> CancelBet(Guid id, [FromBody] CancelBetDto dto)
     {
-        // Get userId from bet (in production, from JWT)
-        var bet = await _db.Bets.FindAsync(id);
-        if (bet == null) return NotFound();
+        var userId = User.GetUserId();
 
         var result = await _cancellationService.CancelBetAsync(
-            new CancelBetRequest(id, bet.UserId, dto.IdempotencyKey));
+            new CancelBetRequest(id, userId, dto.IdempotencyKey));
 
         if (!result.Success)
             return BadRequest(new { result.DenialReason });

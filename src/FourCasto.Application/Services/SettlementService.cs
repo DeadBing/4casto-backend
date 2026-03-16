@@ -33,6 +33,9 @@ public class SettlementService : ISettlementService
 
     public async Task<SettleBetResult> SettleBetAsync(Guid betId, Guid settlementId)
     {
+        using var transaction = await _db.Database.BeginTransactionAsync();
+        try
+        {
         var bet = await _db.Bets
             .Include(b => b.PayoutSnapshot)
             .Include(b => b.Market).ThenInclude(m => m!.Signal).ThenInclude(s => s!.Outcome)
@@ -109,7 +112,14 @@ public class SettlementService : ISettlementService
 
         await _db.SaveChangesAsync();
 
+        await transaction.CommitAsync();
         return new SettleBetResult(settlementId, payoutType, payoutAmount, pnlAmount);
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     private static bool DetermineWin(BetDirection direction, SignalOutcomeType outcomeType)

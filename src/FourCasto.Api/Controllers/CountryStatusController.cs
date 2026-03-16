@@ -1,10 +1,14 @@
 namespace FourCasto.Api.Controllers;
 
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using FourCasto.Api.Extensions;
 using FourCasto.Application.Interfaces;
 using FourCasto.Infrastructure.Persistence;
 
+[Authorize]
 [ApiController]
 [Route("api/country-status")]
 public class CountryStatusController : ControllerBase
@@ -19,10 +23,11 @@ public class CountryStatusController : ControllerBase
     }
 
     [HttpGet("my")]
-    public async Task<IActionResult> GetMyStatus(
-        [FromQuery] Guid fourCastoWlId,
-        [FromQuery] Guid userId)
+    public async Task<IActionResult> GetMyStatus()
     {
+        var userId = User.GetUserId();
+        var fourCastoWlId = User.GetFourCastoWlId();
+
         var result = await _evaluator.EvaluateAsync(fourCastoWlId, userId);
         return Ok(result);
     }

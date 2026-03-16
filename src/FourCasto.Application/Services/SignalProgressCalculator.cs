@@ -43,4 +43,17 @@ public class SignalProgressCalculator : ISignalProgressCalculator
             direction,
             isAvailable);
     }
+
+    /// <summary>
+    /// Pure calculator has no DB access — always returns 0 (no adjustment).
+    /// Use SignalProgressRuleEngine for DB-backed adjustments.
+    /// </summary>
+    public Task<decimal> GetProgressPayoutAdjustmentAsync(
+        Guid fourCastoWlId,
+        Guid? subjectGroupId,
+        decimal progressPercent,
+        ProgressDirection direction)
+    {
+        return Task.FromResult(0m);
+    }
 }

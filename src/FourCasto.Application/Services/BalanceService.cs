@@ -24,6 +24,10 @@ public class BalanceService : IBalanceService
         return balance.AvailableBalance;
     }
 
+    /// <summary>
+    /// Lock funds for a bet: available → locked. Total unchanged.
+    /// Invariant: total = available + locked (maintained).
+    /// </summary>
     public async Task LockFundsAsync(Guid tradingAccountId, Guid betId, decimal amount, Guid fourCastoWlId, Guid userId)
     {
         var balance = await _db.TradingAccountBalances
@@ -35,9 +39,9 @@ public class BalanceService : IBalanceService
 
         balance.AvailableBalance -= amount;
         balance.LockedBalance += amount;
+        // total unchanged: available ↓ locked ↑ by same amount
         balance.UpdatedAt = DateTime.UtcNow;
 
-        // Create hold reservation
         _db.BetHoldReservations.Add(new BetHoldReservation
         {
             FourCastoWlId = fourCastoWlId,
@@ -49,7 +53,6 @@ public class BalanceService : IBalanceService
             Status = HoldStatus.ACTIVE
         });
 
-        // Create ledger entry
         _db.LedgerEntries.Add(new LedgerEntry
         {
             FourCastoWlId = fourCastoWlId,
@@ -68,6 +71,12 @@ public class BalanceService : IBalanceService
         await _db.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// Release hold and consume stake from the account.
+    /// locked → removed from both locked and total.
+    /// After this call the stake is fully consumed (gone from the account).
+    /// Caller must then credit any payout/refund separately.
+    /// </summary>
     public async Task ReleaseFundsAsync(Guid tradingAccountId, Guid betId, decimal amount, HoldReleaseReason reason, Guid fourCastoWlId)
     {
         var balance = await _db.TradingAccountBalances
@@ -84,14 +93,16 @@ public class BalanceService : IBalanceService
             hold.ReleaseReason = reason;
         }
 
+        // Consume stake: remove from locked AND total
         balance.LockedBalance -= amount;
+        balance.TotalBalance -= amount;
         balance.UpdatedAt = DateTime.UtcNow;
 
         var entryType = reason switch
         {
-            HoldReleaseReason.SETTLED_WIN => LedgerEntryType.BET_HOLD_RELEASE,
-            HoldReleaseReason.SETTLED_LOSS => LedgerEntryType.BET_HOLD_RELEASE,
-            HoldReleaseReason.CANCELLED => LedgerEntryType.BET_HOLD_RELEASE,
+            HoldReleaseReason.SETTLED_WIN => LedgerEntryType.SETTLEMENT_WIN,
+            HoldReleaseReason.SETTLED_LOSS => LedgerEntryType.SETTLEMENT_LOSS,
+            HoldReleaseReason.CANCELLED => LedgerEntryType.CANCELLATION_REFUND,
             _ => LedgerEntryType.BET_HOLD_RELEASE
         };
 
@@ -102,7 +113,7 @@ public class BalanceService : IBalanceService
             AccountId = tradingAccountId,
             BalanceType = BalanceType.REAL,
             EntryType = entryType,
-            Amount = amount,
+            Amount = -amount,
             RefType = "Bet",
             RefId = betId,
             BalanceTotalAfter = balance.TotalBalance,
@@ -113,6 +124,11 @@ public class BalanceService : IBalanceService
         await _db.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// Credit payout to available and total. Used after ReleaseFunds.
+    /// For WIN: amount = totalReturn (stake + profit).
+    /// For CANCEL refund: amount = stake - penalty.
+    /// </summary>
     public async Task CreditWinningsAsync(Guid tradingAccountId, decimal amount, Guid betId, Guid fourCastoWlId)
     {
         var balance = await _db.TradingAccountBalances
@@ -142,12 +158,16 @@ public class BalanceService : IBalanceService
         await _db.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// Debit penalty from available and total.
+    /// </summary>
     public async Task DebitPenaltyAsync(Guid tradingAccountId, decimal amount, Guid betId, Guid fourCastoWlId)
     {
         var balance = await _db.TradingAccountBalances
             .FirstOrDefaultAsync(b => b.TradingAccountId == tradingAccountId)
             ?? throw new InvalidOperationException($"Balance not found");
 
+        balance.AvailableBalance -= amount;
         balance.TotalBalance -= amount;
         balance.UpdatedAt = DateTime.UtcNow;
 

@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\FourCasto.Domain\FourCasto.Domain.csproj" />
     <ProjectReference Include="..\..\src\FourCasto.Contracts\FourCasto.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\FourCasto.Application\FourCasto.Application.csproj" />
   </ItemGroup>
 
 </Project>

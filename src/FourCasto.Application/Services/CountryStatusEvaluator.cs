@@ -2,6 +2,7 @@ namespace FourCasto.Application.Services;
 
 using Microsoft.EntityFrameworkCore;
 using FourCasto.Application.Interfaces;
+using FourCasto.Contracts.Enums;
 using FourCasto.Infrastructure.Persistence;
 
 public class CountryStatusEvaluator : ICountryStatusEvaluator
@@ -48,24 +49,59 @@ public class CountryStatusEvaluator : ICountryStatusEvaluator
             // Default to STANDARD
             var standardStatus = await _db.CountryStatuses
                 .FirstOrDefaultAsync(s => s.FourCastoWlId == fourCastoWlId
-                    && s.Name == Contracts.Enums.CountryStatusName.STANDARD);
+                    && s.Name == CountryStatusName.STANDARD);
 
             return new CountryStatusResult(standardStatus?.Id, "STANDARD", countryCode);
         }
 
-        // Calculate user's qualifying metric (total balance across real trading accounts)
-        var totalBalance = await _db.TradingAccountBalances
-            .Where(b => _db.TradingAccounts
-                .Any(ta => ta.Id == b.TradingAccountId
-                    && ta.UserId == userId
-                    && ta.FourCastoWlId == fourCastoWlId
-                    && ta.AccountType == Contracts.Enums.AccountType.REAL))
-            .SumAsync(b => b.TotalBalance);
+        // Group rules by metric type to minimize queries
+        var metricTypes = rules.Select(r => r.MetricType).Distinct().ToList();
+
+        var metrics = new Dictionary<QualificationMetricType, decimal>();
+
+        foreach (var metricType in metricTypes)
+        {
+            metrics[metricType] = metricType switch
+            {
+                QualificationMetricType.CURRENT_BALANCE => await _db.TradingAccountBalances
+                    .Where(b => _db.TradingAccounts
+                        .Any(ta => ta.Id == b.TradingAccountId
+                            && ta.UserId == userId
+                            && ta.FourCastoWlId == fourCastoWlId
+                            && ta.AccountType == AccountType.REAL))
+                    .SumAsync(b => b.TotalBalance),
+
+                QualificationMetricType.EQUITY => await _db.TradingAccountBalances
+                    .Where(b => _db.TradingAccounts
+                        .Any(ta => ta.Id == b.TradingAccountId
+                            && ta.UserId == userId
+                            && ta.FourCastoWlId == fourCastoWlId
+                            && ta.AccountType == AccountType.REAL))
+                    .SumAsync(b => b.Equity),
+
+                QualificationMetricType.DEPOSIT_SUM => await _db.LedgerEntries
+                    .Where(e => e.FourCastoWlId == fourCastoWlId
+                        && e.EntryType == LedgerEntryType.DEPOSIT
+                        && e.AccountType == LedgerAccountType.WALLET)
+                    .Where(e => _db.Wallets
+                        .Any(w => w.Id == e.AccountId && w.UserId == userId))
+                    .SumAsync(e => e.Amount),
+
+                QualificationMetricType.TRADING_VOLUME => await _db.Bets
+                    .Where(b => b.FourCastoWlId == fourCastoWlId
+                        && b.UserId == userId
+                        && b.Status == BetStatus.SETTLED)
+                    .SumAsync(b => b.StakeAmount),
+
+                _ => 0m
+            };
+        }
 
         // Find matching rule
         foreach (var rule in rules)
         {
-            if (totalBalance >= rule.MinValue && (rule.MaxValue == null || totalBalance <= rule.MaxValue))
+            var metricValue = metrics.GetValueOrDefault(rule.MetricType, 0m);
+            if (metricValue >= rule.MinValue && (rule.MaxValue == null || metricValue <= rule.MaxValue))
             {
                 return new CountryStatusResult(
                     rule.CountryStatusId,

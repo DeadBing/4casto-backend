@@ -1,12 +1,15 @@
 namespace FourCasto.Api.Controllers;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using FourCasto.Api.Extensions;
 using FourCasto.Application.Interfaces;
 using FourCasto.Contracts.Enums;
 using FourCasto.Domain.Markets;
 using FourCasto.Infrastructure.Persistence;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class SettlementsController : ControllerBase

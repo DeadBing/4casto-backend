@@ -1,11 +1,15 @@
 namespace FourCasto.Api.Controllers;
 
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using FourCasto.Api.Extensions;
 using FourCasto.Application.Interfaces;
 using FourCasto.Contracts.Enums;
 using FourCasto.Infrastructure.Persistence;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class WalletsController : ControllerBase
@@ -42,8 +46,6 @@ public class WalletsController : ControllerBase
     }
 
     public record TransferDto(
-        Guid FourCastoWlId,
-        Guid UserId,
         Guid TradingAccountId,
         decimal Amount,
         TransferDirection Direction,
@@ -52,8 +54,11 @@ public class WalletsController : ControllerBase
     [HttpPost("{id:guid}/transfer")]
     public async Task<IActionResult> Transfer(Guid id, [FromBody] TransferDto dto)
     {
+        var userId = User.GetUserId();
+        var wlId = User.GetFourCastoWlId();
+
         var result = await _transferService.ExecuteTransferAsync(new TransferRequest(
-            dto.FourCastoWlId, dto.UserId, id, dto.TradingAccountId,
+            wlId, userId, id, dto.TradingAccountId,
             dto.Amount, dto.Direction, dto.IdempotencyKey));
 
         return Ok(result);

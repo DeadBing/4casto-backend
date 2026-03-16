@@ -3,6 +3,7 @@ namespace FourCasto.Api.Controllers;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -26,6 +27,7 @@ public class AuthController : ControllerBase
 
     public record RegisterDto(Guid FourCastoWlId, string Email, string Password, string? CountryCode);
 
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
@@ -75,6 +77,7 @@ public class AuthController : ControllerBase
 
     public record LoginDto(Guid FourCastoWlId, string Email, string Password);
 
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
@@ -93,6 +96,7 @@ public class AuthController : ControllerBase
 
     public record GuestDto(Guid FourCastoWlId);
 
+    [AllowAnonymous]
     [HttpPost("guest")]
     public async Task<IActionResult> CreateGuest([FromBody] GuestDto dto)
     {
@@ -131,6 +135,7 @@ public class AuthController : ControllerBase
 
     public record ClaimDemoDto(Guid FourCastoWlId, Guid GuestUserId, string Email, string Password, string? CountryCode);
 
+    [AllowAnonymous]
     [HttpPost("claim-demo")]
     public async Task<IActionResult> ClaimDemo([FromBody] ClaimDemoDto dto)
     {

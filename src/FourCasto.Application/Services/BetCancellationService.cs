@@ -42,6 +42,9 @@ public class BetCancellationService : IBetCancellationService
 
         try
         {
+            using var transaction = await _db.Database.BeginTransactionAsync();
+            try
+            {
             var bet = await _db.Bets
                 .Include(b => b.Market).ThenInclude(m => m!.Signal)
                 .Include(b => b.Market).ThenInclude(m => m!.Subject)
@@ -85,6 +88,7 @@ public class BetCancellationService : IBetCancellationService
                 var deniedResult = new CancelBetResult(false, 0, 0, zoneResult.Reason);
                 await _idempotencyService.MarkCompletedAsync("CancelBet", request.IdempotencyKey,
                     System.Text.Json.JsonSerializer.Serialize(deniedResult));
+                await transaction.CommitAsync();
                 return deniedResult;
             }
 
@@ -100,6 +104,7 @@ public class BetCancellationService : IBetCancellationService
                 var notAllowedResult = new CancelBetResult(false, 0, 0, "Cancellation not allowed by policy");
                 await _idempotencyService.MarkCompletedAsync("CancelBet", request.IdempotencyKey,
                     System.Text.Json.JsonSerializer.Serialize(notAllowedResult));
+                await transaction.CommitAsync();
                 return notAllowedResult;
             }
 
@@ -132,23 +137,18 @@ public class BetCancellationService : IBetCancellationService
             };
             _db.BetCancellationExecutions.Add(execution);
 
-            // Release hold and return funds
+            // Release hold — consumes full stake from locked and total
             await _balanceService.ReleaseFundsAsync(
                 bet.TradingAccountId, bet.Id, bet.StakeAmount,
                 HoldReleaseReason.CANCELLED, bet.FourCastoWlId);
 
-            // Credit returned amount
+            // Credit back the refund portion (stake minus penalty).
+            // Penalty is already consumed by ReleaseFunds (stake gone from total),
+            // so we only return the non-penalized portion.
             if (amountReturned > 0)
             {
                 await _balanceService.CreditWinningsAsync(
                     bet.TradingAccountId, amountReturned, bet.Id, bet.FourCastoWlId);
-            }
-
-            // Debit penalty
-            if (penaltyAmount > 0)
-            {
-                await _balanceService.DebitPenaltyAsync(
-                    bet.TradingAccountId, penaltyAmount, bet.Id, bet.FourCastoWlId);
             }
 
             bet.Status = BetStatus.CANCELLED;
@@ -159,7 +159,14 @@ public class BetCancellationService : IBetCancellationService
             await _idempotencyService.MarkCompletedAsync("CancelBet", request.IdempotencyKey,
                 System.Text.Json.JsonSerializer.Serialize(result));
 
+            await transaction.CommitAsync();
             return result;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
         catch
         {

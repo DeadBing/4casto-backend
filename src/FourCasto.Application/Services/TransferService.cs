@@ -31,6 +31,9 @@ public class TransferService : ITransferService
 
         try
         {
+            using var transaction = await _db.Database.BeginTransactionAsync();
+            try
+            {
             var transfer = new WalletTransfer
             {
                 FourCastoWlId = request.FourCastoWlId,
@@ -66,7 +69,14 @@ public class TransferService : ITransferService
             await _idempotencyService.MarkCompletedAsync("Transfer", request.IdempotencyKey,
                 System.Text.Json.JsonSerializer.Serialize(result));
 
+            await transaction.CommitAsync();
             return result;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
         catch
         {

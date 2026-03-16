@@ -16,4 +16,10 @@ public interface ISignalProgressCalculator
         decimal stopLossPrice,
         decimal currentPrice,
         decimal maxBettingProgressPercent);
+
+    Task<decimal> GetProgressPayoutAdjustmentAsync(
+        Guid fourCastoWlId,
+        Guid? subjectGroupId,
+        decimal progressPercent,
+        ProgressDirection direction);
 }

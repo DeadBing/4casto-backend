@@ -10,15 +10,18 @@ public class PayoutCalculationService : IPayoutCalculationService
     private readonly FourCastoDbContext _db;
     private readonly ISignalProgressCalculator _progressCalculator;
     private readonly IPolicyResolutionService _policyService;
+    private readonly SignalProgressRuleEngine _ruleEngine;
 
     public PayoutCalculationService(
         FourCastoDbContext db,
         ISignalProgressCalculator progressCalculator,
-        IPolicyResolutionService policyService)
+        IPolicyResolutionService policyService,
+        SignalProgressRuleEngine ruleEngine)
     {
         _db = db;
         _progressCalculator = progressCalculator;
         _policyService = policyService;
+        _ruleEngine = ruleEngine;
     }
 
     public async Task<PayoutCalculationResult> CalculateAsync(
@@ -54,15 +57,21 @@ public class PayoutCalculationService : IPayoutCalculationService
                 signal.EntryPrice, signal.TargetPrice, signal.StopLossPrice,
                 currentPrice, signal.MaxBettingProgressPercent);
 
-            if (progress.Direction == ProgressDirection.TOWARD_TARGET)
+            // Try DB rules first, fall back to formula
+            var ruleAdjustment = await _ruleEngine.GetPayoutAdjustmentAsync(
+                fourCastoWlId, subjectGroupId, progress.ProgressPercent, progress.Direction);
+
+            if (ruleAdjustment != 0)
             {
-                // Reduce payout proportionally to progress
-                progressAdjustment = -(basePayoutPercent * Math.Abs(progress.ProgressPercent) / 100m);
+                progressAdjustment = ruleAdjustment;
             }
-            else if (progress.Direction == ProgressDirection.TOWARD_STOP)
+            else
             {
-                // Increase payout if price moved against signal
-                progressAdjustment = basePayoutPercent * Math.Abs(progress.ProgressPercent) / 100m * 0.5m;
+                // Fallback formula
+                if (progress.Direction == ProgressDirection.TOWARD_TARGET)
+                    progressAdjustment = -(basePayoutPercent * Math.Abs(progress.ProgressPercent) / 100m);
+                else if (progress.Direction == ProgressDirection.TOWARD_STOP)
+                    progressAdjustment = basePayoutPercent * Math.Abs(progress.ProgressPercent) / 100m * 0.5m;
             }
         }
 

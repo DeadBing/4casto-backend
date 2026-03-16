@@ -47,6 +47,9 @@ public class BetPlacementService : IBetPlacementService
 
         try
         {
+            using var transaction = await _db.Database.BeginTransactionAsync();
+            try
+            {
             // Validate market
             var market = await _db.Markets
                 .Include(m => m.Signal)
@@ -187,7 +190,14 @@ public class BetPlacementService : IBetPlacementService
             if (!string.IsNullOrEmpty(request.IdempotencyKey))
                 await _idempotencyService.MarkCompletedAsync("PlaceBet", request.IdempotencyKey, JsonSerializer.Serialize(result));
 
+            await transaction.CommitAsync();
             return result;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
         catch
         {
