@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\FourCasto.Api.props" />
-</Project>
