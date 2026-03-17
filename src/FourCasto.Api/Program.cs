@@ -100,6 +100,14 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Auto-create database in Development (no migrations needed)
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<FourCastoDbContext>();
+    db.Database.EnsureCreated();
+}
+
 // Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
